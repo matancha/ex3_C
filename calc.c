@@ -2,33 +2,13 @@
 #include <errno.h>
 #include <string.h>
 #include "stack.h"
+#include "calc.h"
 
 #define MAX_CHARS_LINE 100
 
-typedef struct {
-    char sign;
-    int precedence;
-} Operator;
-
-typedef enum {OPERAND, OPERATOR, PARENTHESES} TokenType;
-
-typedef struct _Token {
-    TokenType type;
-    union data {
-        struct { int value; } intVal;
-        struct { Operator operator; } operatorVal;
-    } data;
-} Token;
-
 const int NUM_OPERATORS = 5;
-Operator Plus = {'+', 1};
-Operator Minus = {'-', 1};
-Operator Multiplication = {'*', 2};
-Operator Division = {'/', 2};
-Operator Power = {'^', 3};
-Operator Null = {'N', 0};
 
-Operator getOperator(char c)
+Operator getOperator(const char c)
 {
     Operator operators[] = {Plus, Minus, Multiplication, Division, Power, Null};
     for (int i = 0; i < NUM_OPERATORS; ++i)
@@ -53,9 +33,9 @@ int main()
 
         for (int i = 0; i < (int)strlen(infix); ++i)
         {
+            Token token;
             if (infix[i] == '(')
             {
-                Token token;
                 token.type = PARENTHESES;
                 push(tempStack, &token);
             }
@@ -68,14 +48,12 @@ int main()
                     pop(tempStack, &temp);
                     push(resultStack, &temp);
                 }
-                Token token;
                 pop(tempStack, &token);
             }
             else
             {
-                if (getOperator(infix[i]).sign != 'N')
+                if (getOperator(infix[i]).sign != '0')
                 {
-                    Token token;
                     token.type = OPERATOR;
                     token.data.operatorVal.operator = getOperator(infix[i]);
                     if (isEmptyStack(tempStack) == 1)
@@ -106,13 +84,13 @@ int main()
                         j++;
                     }
                     char *strNum = malloc((j-i) * sizeof(char));
+                    strncpy(strNum, &infix[i], (size_t)j-i);
+
                     i = j-1;
-                    strncpy(strNum, &infix[i], j-i);
 
                     char *error;
                     int num = (int)strtol(strNum, &error, 10);
 
-                    Token token;
                     token.type = OPERAND;
                     token.data.intVal.value = num;
                     push(resultStack, &token);
@@ -140,7 +118,14 @@ int main()
         {
             Token temp;
             pop(tempStack, &temp);
-            printf("%d ", temp.data.intVal.value);
+            if (temp.type == OPERAND)
+            {
+                printf(" %d ", temp.data.intVal.value);
+            }
+            else if (temp.type == OPERATOR)
+            {
+                printf("%c", temp.data.operatorVal.operator.sign);
+            }
             push(resultStack, &temp);
         }
         printf("\n");

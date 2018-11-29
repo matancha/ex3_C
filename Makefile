@@ -4,7 +4,7 @@ LDFLAGS = -lm
 
 
 # add your .c files here  (no file suffixes)
-CLASSES = stack main
+CLASSES = stack calc
 
 # Prepare object and source file list using pattern substitution func.
 OBJS = $(patsubst %, %.o,  $(CLASSES))
