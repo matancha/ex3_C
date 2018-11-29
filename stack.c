@@ -31,6 +31,11 @@ void freeStack(Stack** stack)
     }
 }
 
+void *peek(Stack* stack)
+{
+  return stack->_top->_data;
+}
+
 void push(Stack* stack, void *data)
 {
   //you should check allocation success

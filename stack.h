@@ -19,6 +19,8 @@ Stack* stackAlloc(size_t elementSize);
 
 void freeStack(Stack** stack);
 
+void *peek(Stack* stack);
+
 void push(Stack* stack, void *data);
 
 void pop(Stack* stack,void *headData);
