@@ -1,6 +1,9 @@
 #ifndef CALC_H
 #define CALC_H
 
+/**
+ * struct for operators
+ */
 typedef struct _Operator
 {
     char sign;
@@ -8,28 +11,81 @@ typedef struct _Operator
     int (*calculate)(int a, int b);
 } Operator;
 
-typedef enum {OPERAND, OPERATOR, PARENTHESIS} TokenType;
+/**
+ * TokenTypes possible in program
+ */
+typedef enum
+{OPERAND,
+ OPERATOR,
+ PARENTHESIS
+} TokenType;
 
+/**
+ * Data structure for stack
+ */
 typedef struct _Token
 {
     TokenType type;
+    /**
+     * Data
+     */
     union data
     {
+        /**
+         * Numerical values
+         */
         struct { int value; } intVal;
+        /**
+         * Operators
+         */
         struct { Operator operator; } operatorVal;
     } data;
 } Token;
 
-int calculate_plus(int a, int b);
-int calculate_minus(int a, int b);
-int calculate_product(int a, int b);
-int calculate_division(int a, int b);
-int calculate_power(int a, int b);
+/**
+ * Calculate sum
+ * @param a first int
+ * @param b second int
+ * @return sum
+ */
+int calculatePlus(const int a, const int b);
 
-Operator Plus = {'+', 1, &calculate_plus};
-Operator Minus = {'-', 1, &calculate_minus};
-Operator Multiplication = {'*', 2, &calculate_product};
-Operator Division = {'/', 2, &calculate_division};
-Operator Power = {'^', 3, &calculate_power};
+/**
+ * Calculate minus
+ * @param a first int
+ * @param b second int
+ * @return sum
+ */
+int calculateMinus(const int a, const int b);
+
+/**
+ * Calculate product
+ * @param a first int
+ * @param b second int
+ * @return product
+ */
+int calculateProduct(const int a, const int b);
+
+/**
+ * Calcuates division
+ * @param a first int
+ * @param b second int
+ * @return result is succeeds, if division by zero exits program
+ */
+int calculateDivision(const int a, const int b);
+
+/**
+ * Calculate power
+ * @param a first int
+ * @param b power
+ * @return result
+ */
+int calculatePower(const int a, const int b);
+
+Operator Plus = {'+', 1, &calculatePlus};
+Operator Minus = {'-', 1, &calculateMinus};
+Operator Multiplication = {'*', 2, &calculateProduct};
+Operator Division = {'/', 2, &calculateDivision};
+Operator Power = {'^', 3, &calculatePower};
 
 #endif //CALC_H

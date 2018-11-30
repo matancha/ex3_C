@@ -23,7 +23,7 @@ const char *POSTFIX_MSG = "Postfix: ";
  * @param b second int
  * @return sum
  */
-int calculate_plus(const int a, const int b)
+int calculatePlus(const int a, const int b)
 {
     return a + b;
 }
@@ -34,7 +34,7 @@ int calculate_plus(const int a, const int b)
  * @param b second int
  * @return sum
  */
-int calculate_minus(const int a, const int b)
+int calculateMinus(const int a, const int b)
 {
     return a - b;
 }
@@ -45,7 +45,7 @@ int calculate_minus(const int a, const int b)
  * @param b second int
  * @return product
  */
-int calculate_product(const int a, const int b)
+int calculateProduct(const int a, const int b)
 {
     return a * b;
 }
@@ -56,7 +56,7 @@ int calculate_product(const int a, const int b)
  * @param b second int
  * @return result is succeeds, if division by zero exits program
  */
-int calculate_division(const int a, const int b)
+int calculateDivision(const int a, const int b)
 {
     if (b == 0)
     {
@@ -72,7 +72,7 @@ int calculate_division(const int a, const int b)
  * @param b power
  * @return result
  */
-int calculate_power(const int a, const int b)
+int calculatePower(const int a, const int b)
 {
     return (int)pow(a, b);
 }
@@ -191,8 +191,7 @@ void parseInput(const char *infix, Stack *tempStack, Stack *resultStack)
         else if (infix[i] == RIGHT_PARENTHESIS)
         {
             printf("%c", infix[i]);
-            while (isEmptyStack(tempStack) != 1 && ((Token *) peek(tempStack))->type !=
-                                                   PARENTHESIS)
+            while (isEmptyStack(tempStack) != 1 && ((Token *) peek(tempStack))->type != PARENTHESIS)
             {
                 moveStackToStack(tempStack, resultStack);
             }
@@ -212,7 +211,7 @@ void parseInput(const char *infix, Stack *tempStack, Stack *resultStack)
                 while (isEmptyStack(tempStack) != 1 &&
                        ((Token *) peek(tempStack))->type == OPERATOR
                        && token.data.operatorVal.operator.precedence <=
-                          ((Token *) peek(tempStack))->data.operatorVal.operator.precedence
+                       ((Token *) peek(tempStack))->data.operatorVal.operator.precedence
                        && ((Token *) peek(tempStack))->type != PARENTHESIS)
                 {
                     moveStackToStack(tempStack, resultStack);
