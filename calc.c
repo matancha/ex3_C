@@ -37,11 +37,6 @@ int calculate_power(int a, int b)
     return (int)pow(a, b);
 }
 
-int calculate_nothing(int a, int b)
-{
-    return a + b;
-}
-
 void moveStackToStack(Stack *src, Stack *dest)
 {
     while (isEmptyStack(src) != 1)
@@ -68,9 +63,20 @@ void convertStrToInt(const char *str, int *variable)
     }
 }
 
-Operator getOperator(const char c)
+int isOperator(const char c, const Operator operators[])
 {
-    Operator operators[] = {Plus, Minus, Multiplication, Division, Power, Null};
+    for (int i = 0; i < NUM_OPERATORS; ++i)
+    {
+        if (operators[i].sign == c)
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+Operator getOperator(const char c, const Operator operators[])
+{
     for (int i = 0; i < NUM_OPERATORS; ++i)
     {
         if (operators[i].sign == c)
@@ -78,21 +84,49 @@ Operator getOperator(const char c)
             return operators[i];
         }
     }
-    return Null;
+    /* Can't get here - default value */
+    return Plus;
 }
 
 void parseInput(const char *infix, Stack *tempStack, Stack *resultStack)
 {
+    Operator operators[] = {Plus, Minus, Multiplication, Division, Power};
     for (int i = 0; i < (int)strlen(infix); ++i)
     {
         Token token;
+        if (infix[i] >= '0' && infix[i] <= '9')
+        {
+            int j = i;
+            while (infix[j] >= '0' && infix[j] <= '9')
+            {
+                j++;
+            }
+            char *strNum = malloc((j-i) * sizeof(char));
+            if (strNum != NULL)
+            {
+                strncpy(strNum, &infix[i], (size_t)j-i);
+
+                i = j-1;
+
+                int num;
+                convertStrToInt(strNum, &num);
+                free(strNum);
+
+                token.type = OPERAND;
+                token.data.intVal.value = num;
+                push(resultStack, &token);
+                printf(" %d ", num);
+            }
+        }
         if (infix[i] == LEFT_PARENTHESIS)
         {
+            printf("%c", infix[i]);
             token.type = PARENTHESIS;
             push(tempStack, &token);
         }
         else if (infix[i] == RIGHT_PARENTHESIS)
         {
+            printf("%c", infix[i]);
             while (isEmptyStack(tempStack) != 1 && ((Token *) peek(tempStack))->type !=
                                                    PARENTHESIS)
             {
@@ -102,54 +136,28 @@ void parseInput(const char *infix, Stack *tempStack, Stack *resultStack)
             }
             pop(tempStack, &token);
         }
-        else
+        else if (isOperator(infix[i], operators) == 1)
         {
-            if (getOperator(infix[i]).sign != '0')
+            printf("%c", infix[i]);
+            token.type = OPERATOR;
+            token.data.operatorVal.operator = getOperator(infix[i], operators);
+            if (isEmptyStack(tempStack) == 1)
             {
-                token.type = OPERATOR;
-                token.data.operatorVal.operator = getOperator(infix[i]);
-                if (isEmptyStack(tempStack) == 1)
-                {
-                    push(tempStack, &token);
-                }
-                else
-                {
-                    while (isEmptyStack(tempStack) != 1 &&
-                           ((Token *) peek(tempStack))->type == OPERATOR
-                           && getOperator(infix[i]).precedence <= ((Token *) peek(tempStack))
-                            ->data.operatorVal.operator.precedence
-                           && ((Token *) peek(tempStack))->type != PARENTHESIS)
-                    {
-                        Token temp;
-                        pop(tempStack, &temp);
-                        push(resultStack, &temp);
-                    }
-                    push(tempStack, &token);
-                }
+                push(tempStack, &token);
             }
-
-            if (infix[i] >= '0' && infix[i] <= '9')
+            else
             {
-                int j = i;
-                while (infix[j] >= '0' && infix[j] <= '9')
+                while (isEmptyStack(tempStack) != 1 &&
+                       ((Token *) peek(tempStack))->type == OPERATOR
+                       && token.data.operatorVal.operator.precedence <=
+                          ((Token *) peek(tempStack))->data.operatorVal.operator.precedence
+                       && ((Token *) peek(tempStack))->type != PARENTHESIS)
                 {
-                    j++;
+                    Token temp;
+                    pop(tempStack, &temp);
+                    push(resultStack, &temp);
                 }
-                char *strNum = malloc((j-i) * sizeof(char));
-                if (strNum != NULL)
-                {
-                    strncpy(strNum, &infix[i], (size_t)j-i);
-
-                    i = j-1;
-
-                    int num;
-                    convertStrToInt(strNum, &num);
-                    free(strNum);
-
-                    token.type = OPERAND;
-                    token.data.intVal.value = num;
-                    push(resultStack, &token);
-                }
+                push(tempStack, &token);
             }
         }
     }
@@ -163,9 +171,10 @@ int main()
     {
         Stack *tempStack = stackAlloc(sizeof(Token));
         Stack *resultStack = stackAlloc(sizeof(Token));
-        printf("Infix: %s", infix);
 
+        printf("Infix: ");
         parseInput(infix, tempStack, resultStack);
+        printf("\n");
 
         moveStackToStack(tempStack, resultStack);
         printf("Postfix: ");
