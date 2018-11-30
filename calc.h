@@ -1,17 +1,20 @@
 #ifndef CALC_H
 #define CALC_H
 
-typedef struct _Operator {
+typedef struct _Operator
+{
     char sign;
     int precedence;
-    int (*calcuate)(int a, int b);
+    int (*calculate)(int a, int b);
 } Operator;
 
 typedef enum {OPERAND, OPERATOR, PARENTHESIS} TokenType;
 
-typedef struct _Token {
+typedef struct _Token
+{
     TokenType type;
-    union data {
+    union data
+    {
         struct { int value; } intVal;
         struct { Operator operator; } operatorVal;
     } data;

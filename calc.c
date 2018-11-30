@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <string.h>
 #include <math.h>
+#include <ctype.h>
 #include "stack.h"
 #include "calc.h"
 
@@ -11,40 +12,81 @@ const int NUM_OPERATORS = 5;
 const char LEFT_PARENTHESIS = '(';
 const char RIGHT_PARENTHESIS = ')';
 const char *ILLEGAL_STR_ERR = "Illegal parameter supplied";
+const char *DIVISION_ZERO_ERR = "Division by 0!";
+const char *MEMORY_ALLOCATION_ERR = "Memory allocation failed";
+const char *INFIX_MSG = "Infix: ";
+const char *POSTFIX_MSG = "Postfix: ";
 
-int calculate_plus(int a, int b)
+/**
+ * Calculate sum
+ * @param a first int
+ * @param b second int
+ * @return sum
+ */
+int calculate_plus(const int a, const int b)
 {
     return a + b;
 }
 
-int calculate_minus(int a, int b)
+/**
+ * Calculate minus
+ * @param a first int
+ * @param b second int
+ * @return sum
+ */
+int calculate_minus(const int a, const int b)
 {
     return a - b;
 }
 
-int calculate_product(int a, int b)
+/**
+ * Calculate product
+ * @param a first int
+ * @param b second int
+ * @return product
+ */
+int calculate_product(const int a, const int b)
 {
     return a * b;
 }
 
-int calculate_division(int a, int b)
+/**
+ * Calcuates division
+ * @param a first int
+ * @param b second int
+ * @return result is succeeds, if division by zero exits program
+ */
+int calculate_division(const int a, const int b)
 {
+    if (b == 0)
+    {
+        fprintf(stderr, "%s", DIVISION_ZERO_ERR);
+        exit(EXIT_FAILURE);
+    }
     return a / b;
 }
 
-int calculate_power(int a, int b)
+/**
+ * Calculate power
+ * @param a first int
+ * @param b power
+ * @return result
+ */
+int calculate_power(const int a, const int b)
 {
     return (int)pow(a, b);
 }
 
+/**
+ * Move one element from stack src to stack dest
+ * @param src stack src
+ * @param dest stack dest
+ */
 void moveStackToStack(Stack *src, Stack *dest)
 {
-    while (isEmptyStack(src) != 1)
-    {
-        Token temp;
-        pop(src, &temp);
-        push(dest, &temp);
-    }
+    Token temp;
+    pop(src, &temp);
+    push(dest, &temp);
 }
 
 /**
@@ -63,6 +105,12 @@ void convertStrToInt(const char *str, int *variable)
     }
 }
 
+/**
+ * Checks if char is the sign attributed to an operator
+ * @param c sign
+ * @param operators list of operators
+ * @return 1 if true, 0 else
+ */
 int isOperator(const char c, const Operator operators[])
 {
     for (int i = 0; i < NUM_OPERATORS; ++i)
@@ -75,6 +123,12 @@ int isOperator(const char c, const Operator operators[])
     return 0;
 }
 
+/**
+ * Gets the operator corresponding to c sign
+ * @param c sign
+ * @param operators list of operators
+ * @return operator, Plus is default but can't be reached (function called only after checking)
+ */
 Operator getOperator(const char c, const Operator operators[])
 {
     for (int i = 0; i < NUM_OPERATORS; ++i)
@@ -88,16 +142,22 @@ Operator getOperator(const char c, const Operator operators[])
     return Plus;
 }
 
+/**
+ * Parse input from user
+ * @param infix input
+ * @param tempStack temporary stack
+ * @param resultStack result stack
+ */
 void parseInput(const char *infix, Stack *tempStack, Stack *resultStack)
 {
     Operator operators[] = {Plus, Minus, Multiplication, Division, Power};
     for (int i = 0; i < (int)strlen(infix); ++i)
     {
         Token token;
-        if (infix[i] >= '0' && infix[i] <= '9')
+        if (isdigit((int)infix[i]))
         {
             int j = i;
-            while (infix[j] >= '0' && infix[j] <= '9')
+            while (isdigit((int)infix[j]))
             {
                 j++;
             }
@@ -117,8 +177,12 @@ void parseInput(const char *infix, Stack *tempStack, Stack *resultStack)
                 push(resultStack, &token);
                 printf(" %d ", num);
             }
+            else
+            {
+                fprintf(stderr, "%s", MEMORY_ALLOCATION_ERR);
+            }
         }
-        if (infix[i] == LEFT_PARENTHESIS)
+        else if (infix[i] == LEFT_PARENTHESIS)
         {
             printf("%c", infix[i]);
             token.type = PARENTHESIS;
@@ -130,9 +194,7 @@ void parseInput(const char *infix, Stack *tempStack, Stack *resultStack)
             while (isEmptyStack(tempStack) != 1 && ((Token *) peek(tempStack))->type !=
                                                    PARENTHESIS)
             {
-                Token temp;
-                pop(tempStack, &temp);
-                push(resultStack, &temp);
+                moveStackToStack(tempStack, resultStack);
             }
             pop(tempStack, &token);
         }
@@ -153,9 +215,7 @@ void parseInput(const char *infix, Stack *tempStack, Stack *resultStack)
                           ((Token *) peek(tempStack))->data.operatorVal.operator.precedence
                        && ((Token *) peek(tempStack))->type != PARENTHESIS)
                 {
-                    Token temp;
-                    pop(tempStack, &temp);
-                    push(resultStack, &temp);
+                    moveStackToStack(tempStack, resultStack);
                 }
                 push(tempStack, &token);
             }
@@ -163,6 +223,10 @@ void parseInput(const char *infix, Stack *tempStack, Stack *resultStack)
     }
 }
 
+/**
+ * Main program
+ * @return exit status
+ */
 int main()
 {
     char infix[MAX_CHARS_LINE + 1] = {0};
@@ -172,13 +236,19 @@ int main()
         Stack *tempStack = stackAlloc(sizeof(Token));
         Stack *resultStack = stackAlloc(sizeof(Token));
 
-        printf("Infix: ");
+        printf("%s", INFIX_MSG);
         parseInput(infix, tempStack, resultStack);
         printf("\n");
 
-        moveStackToStack(tempStack, resultStack);
-        printf("Postfix: ");
-        moveStackToStack(resultStack, tempStack);
+        while (isEmptyStack(tempStack) != 1)
+        {
+            moveStackToStack(tempStack, resultStack);
+        }
+        printf("%s", POSTFIX_MSG);
+        while (isEmptyStack(resultStack) != 1)
+        {
+            moveStackToStack(resultStack, tempStack);
+        }
 
         Stack *calculationStack = stackAlloc(sizeof(Token));
         while (isEmptyStack(tempStack) != 1)
@@ -193,11 +263,12 @@ int main()
             else if (temp.type == OPERATOR)
             {
                 printf("%c", temp.data.operatorVal.operator.sign);
+
                 Token a;
                 Token b;
                 pop(calculationStack, &a);
                 pop(calculationStack, &b);
-                int result = temp.data.operatorVal.operator.calcuate(b.data.intVal.value,
+                int result = temp.data.operatorVal.operator.calculate(b.data.intVal.value,
                                                                      a.data.intVal.value);
                 a.data.intVal.value = result;
                 push(calculationStack, &a);
