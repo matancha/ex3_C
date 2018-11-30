@@ -198,7 +198,7 @@ int main()
         printf("\n");
         Token finalToken;
         pop(calculationStack, &finalToken);
-        printf("The value is %d", finalToken.data.intVal.value);
+        printf("The value is %d\n", finalToken.data.intVal.value);
 
         freeStack(&calculationStack);
         freeStack(&tempStack);
